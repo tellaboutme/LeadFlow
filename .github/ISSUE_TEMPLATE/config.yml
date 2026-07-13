@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability privately
+    url: https://github.com/tellaboutme/LeadFlow/security/advisories/new
+    about: Do not disclose vulnerabilities in public issues.
+  - name: Project documentation
+    url: https://github.com/tellaboutme/LeadFlow/tree/main/docs
+    about: Read the product and engineering specifications first.

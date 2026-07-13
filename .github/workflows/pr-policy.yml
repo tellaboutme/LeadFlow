@@ -1,0 +1,109 @@
+name: PR Policy
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: pr-policy-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: PR Policy / validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Validate title, branch, and body
+        shell: python
+        run: |
+          import json
+          import os
+          import re
+          import sys
+          from pathlib import Path
+
+          event_path = os.environ.get("GITHUB_EVENT_PATH")
+          if not event_path:
+              print("::error::GITHUB_EVENT_PATH is not set; cannot read the pull_request event payload.")
+              sys.exit(1)
+
+          event_file = Path(event_path)
+          if not event_file.is_file():
+              print(f"::error::GITHUB_EVENT_PATH does not point to a file: {event_path}")
+              sys.exit(1)
+
+          try:
+              event = json.loads(event_file.read_text(encoding="utf-8"))
+          except json.JSONDecodeError as exc:
+              print(f"::error::Event payload is not valid JSON ({event_path}): {exc}")
+              sys.exit(1)
+
+          pr = event.get("pull_request")
+          if not pr:
+              print("::error::Event payload has no pull_request object; this workflow must run on a pull_request event.")
+              sys.exit(1)
+
+          title = pr["title"].strip()
+          branch = pr["head"]["ref"].strip()
+          body = (pr.get("body") or "").strip()
+          is_draft = bool(pr.get("draft"))
+          author = (pr.get("user") or {}).get("login", "")
+
+          title_pattern = re.compile(
+              r"^(feat|fix|refactor|docs|test|ci|build|chore|security|perf|revert)"
+              r"\([a-z0-9][a-z0-9-]*\)!?: .{3,72}$"
+          )
+          branch_pattern = re.compile(
+              r"^(feat|fix|refactor|docs|test|ci|build|chore|security|perf|revert)"
+              r"/[0-9]+-[a-z0-9]+(?:-[a-z0-9]+)*$"
+          )
+
+          errors: list[str] = []
+
+          if not title_pattern.fullmatch(title):
+              errors.append(
+                  "PR title must match: type(scope): imperative summary "
+                  "(supported types; 3-72 summary characters)."
+              )
+
+          bot_branch = branch.startswith("dependabot/") or branch.startswith("release/")
+          if not bot_branch and not branch_pattern.fullmatch(branch):
+              errors.append(
+                  "Branch must match: type/issue-number-kebab-summary "
+                  "(or dependabot/*, release/*)."
+              )
+
+          forbidden = re.compile(r"\b(wip|final|temporary|temp|stuff|changes)\b", re.I)
+          if forbidden.search(title):
+              errors.append("PR title contains a forbidden low-signal word.")
+
+          if not is_draft and not bot_branch:
+              required_sections = [
+                  "## Summary",
+                  "## Linked issue",
+                  "## Evidence",
+                  "## Security and privacy",
+              ]
+              for section in required_sections:
+                  if section not in body:
+                      errors.append(f"Ready PR is missing required section: {section}")
+
+              if not re.search(r"\b(?:Closes|Fixes|Resolves)\s+#[0-9]+\b", body, re.I):
+                  errors.append(
+                      "Ready human-authored PR must close a linked issue "
+                      "with Closes/Fixes/Resolves #number."
+                  )
+
+          if errors:
+              print("PR policy violations:")
+              for error in errors:
+                  print(f"- {error}")
+              sys.exit(1)
+
+          print(f"PR policy passed for @{author}: {branch} -> {title}")

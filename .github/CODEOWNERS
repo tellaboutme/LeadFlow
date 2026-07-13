@@ -1,0 +1,11 @@
+# Ownership requests are informational in solo mode.
+# Required code-owner approval is enabled only after a trusted collaborator joins.
+
+*                       @tellaboutme
+/.github/                @tellaboutme
+/backend/                @tellaboutme
+/frontend/               @tellaboutme
+/docs/                   @tellaboutme
+/skills/                 @tellaboutme
+/scripts/github/         @tellaboutme
+/docker-compose*.yml     @tellaboutme

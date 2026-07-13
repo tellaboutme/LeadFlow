@@ -1,0 +1,56 @@
+name: Feature request
+description: Propose a focused product or engineering improvement
+title: "feat: "
+labels:
+  - "type:feature"
+  - "status:needs-info"
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: Explain the user or engineering problem before proposing a solution.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Suggested priority
+      options:
+        - P3 Low
+        - P2 Medium
+        - P1 High
+    validations:
+      required: true
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope checks
+      options:
+        - label: This does not duplicate an existing issue.
+          required: true
+        - label: This request avoids including secrets or personal data.
+          required: true

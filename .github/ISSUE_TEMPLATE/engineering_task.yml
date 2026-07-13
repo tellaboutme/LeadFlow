@@ -1,0 +1,36 @@
+name: Engineering task
+description: Maintenance, CI, security or documentation work
+title: "chore: "
+labels:
+  - "type:chore"
+  - "status:ready"
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Deliverable
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: tests
+    attributes:
+      label: Required automated checks
+    validations:
+      required: true
+  - type: textarea
+    id: non_goals
+    attributes:
+      label: Non-goals
+  - type: textarea
+    id: security
+    attributes:
+      label: Security/data considerations

@@ -1,0 +1,152 @@
+# Job names are contractual: the required status checks are "CI / backend",
+# "CI / frontend", "CI / api-contract", "CI / e2e" and "CI / accessibility".
+# Renaming a job here requires a coordinated ruleset update
+#
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Every job runs against mock providers only. CI must never reach a real AI or
+# Telegram endpoint, and no real credentials are available to it.
+env:
+  AI_PROVIDER: mock
+  TELEGRAM_PROVIDER: mock
+
+jobs:
+  backend:
+    name: backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-stack
+        with:
+          frontend: "false"
+
+      - name: Lint
+        working-directory: backend
+        run: uv run ruff check app/ tests/
+
+      - name: Type-check
+        working-directory: backend
+        run: uv run mypy app/
+
+      - name: Test
+        working-directory: backend
+        run: uv run pytest --cov=app --cov-report=term-missing -q
+
+  frontend:
+    name: frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-stack
+        with:
+          backend: "false"
+          # `npm run test` runs both Vitest projects, and the Storybook one
+          # executes the stories in a real browser, so Chromium is required.
+          playwright: "true"
+
+      - name: Type-check
+        working-directory: frontend
+        run: npm run typecheck
+
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Test
+        working-directory: frontend
+        run: npm run test -- --run
+
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+
+  api-contract:
+    name: api-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-stack
+
+      # Regenerating from the live FastAPI app and diffing against the committed
+      # files catches the case where an endpoint changed but openapi.json or the
+      # generated TypeScript types were not regenerated.
+      - name: Regenerate the OpenAPI schema
+        working-directory: backend
+        env:
+          PYTHONPATH: .
+        run: uv run python scripts/export_openapi.py
+
+      - name: Fail if openapi.json is stale
+        run: git diff --exit-code -- openapi.json
+
+      - name: Fail if the generated API types are stale
+        working-directory: frontend
+        run: npm run schema:check
+
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-stack
+        with:
+          playwright: "true"
+
+      # playwright.config.ts starts its own backend (isolated test DB, mocked
+      # providers) and serves the real production build.
+      - name: Run E2E suites
+        working-directory: frontend
+        run: npx playwright test e2e/core-flow.spec.ts e2e/filters.spec.ts e2e/failed-analysis-retry.spec.ts
+
+      - name: Upload the Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-e2e
+          path: frontend/playwright-report/
+          retention-days: 7
+
+  accessibility:
+    name: accessibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-stack
+        with:
+          playwright: "true"
+
+      # axe-core against the dashboard, leads list, lead form, lead details and
+      # settings pages; fails on any critical or serious WCAG 2 A/AA violation.
+      - name: Run accessibility checks
+        working-directory: frontend
+        run: npx playwright test e2e/accessibility.spec.ts
+
+      - name: Upload the Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-accessibility
+          path: frontend/playwright-report/
+          retention-days: 7

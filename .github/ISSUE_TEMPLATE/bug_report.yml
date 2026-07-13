@@ -1,0 +1,77 @@
+name: Bug report
+description: Report a reproducible problem in LeadFlow
+title: "fix: "
+labels:
+  - "type:bug"
+  - "status:needs-info"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not report security vulnerabilities here. Use the private reporting link in SECURITY.md.
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: "v0.3.0 or commit SHA"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Frontend
+        - Backend/API
+        - AI analysis
+        - Telegram
+        - Database/migrations
+        - Docker/deployment
+        - GitHub/CI
+        - Documentation
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem
+      description: Describe the observed behavior clearly.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+      placeholder: |
+        1. Start ...
+        2. Open ...
+        3. Submit ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs, console, network or screenshots
+      description: Remove tokens, keys and personal data before submitting.
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: "Windows 11, Firefox 152, Docker Desktop..."
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission checks
+      options:
+        - label: I searched existing issues.
+          required: true
+        - label: I reproduced this on the latest main/release where practical.
+          required: true
+        - label: I removed secrets and personal data.
+          required: true

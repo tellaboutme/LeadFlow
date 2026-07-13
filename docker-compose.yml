@@ -1,0 +1,62 @@
+# Local production-profile stack: nginx serves the built frontend and proxies
+# /api to the backend, so the browser only ever talks to one origin.
+#
+#   docker compose up --build     -> http://localhost:8080
+#
+# Values below fall back to safe defaults; anything set in the repo root .env is
+# picked up by Compose's variable substitution and wins. Only the variables named
+# here are passed into the container — the .env file itself is never mounted.
+
+services:
+  backend:
+    build:
+      context: ./backend
+    # Pinned so CI (image scanning, SBOM) can reference a stable name rather
+    # than one derived from the directory the project happens to sit in.
+    image: leadflow-backend:local
+    environment:
+      # SQLite lives on the named volume, so it must not be overridable by a
+      # host path from .env.
+      DATABASE_URL: sqlite:////app/data/leadflow.db
+
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+
+      # Mocked by default: `docker compose up` never calls a real external API.
+      # Set AI_PROVIDER=openai / TELEGRAM_PROVIDER=telegram in .env (with the
+      # matching credentials) to talk to the real services.
+      AI_PROVIDER: ${AI_PROVIDER:-mock}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5.6-luna}
+      TELEGRAM_PROVIDER: ${TELEGRAM_PROVIDER:-mock}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+
+      # Populates the demo leads on first boot. Idempotent across restarts.
+      SEED_ON_START: ${SEED_ON_START:-true}
+    volumes:
+      # Persists the SQLite database across `docker compose down` / restarts.
+      - leadflow-data:/app/data
+    ports:
+      # Bound to loopback: reachable for debugging, not exposed to the network.
+      # Normal traffic reaches the API through the frontend's /api proxy.
+      - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
+    restart: unless-stopped
+    # Healthcheck is defined in the image (backend/Dockerfile) and inherited.
+
+  frontend:
+    build:
+      context: ./frontend
+    image: leadflow-frontend:local
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      # Host ports are overridable (FRONTEND_PORT / BACKEND_PORT in .env) so a
+      # port already taken by something else on the machine is a one-line fix
+      # rather than an edit to this file.
+      - "${FRONTEND_PORT:-8080}:8080"
+    restart: unless-stopped
+    # Healthcheck is defined in the image (frontend/Dockerfile) and inherited.
+
+volumes:
+  leadflow-data:

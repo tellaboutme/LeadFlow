@@ -1,0 +1,37 @@
+changelog:
+  exclude:
+    labels:
+      - skip-changelog
+      - duplicate
+      - invalid
+      - wontfix
+  categories:
+    - title: "🚀 Features"
+      labels:
+        - "type:feature"
+    - title: "🐛 Bug fixes"
+      labels:
+        - "type:bug"
+    - title: "⚡ Performance"
+      labels:
+        - "type:perf"
+    - title: "🔐 Security"
+      labels:
+        - "type:security"
+        - "security-update"
+    - title: "📚 Documentation"
+      labels:
+        - "type:docs"
+    - title: "📦 Dependencies"
+      labels:
+        - "dependencies"
+    - title: "🛠 Internal and CI"
+      labels:
+        - "type:ci"
+        - "type:build"
+        - "type:chore"
+        - "type:test"
+        - "type:refactor"
+    - title: "Other changes"
+      labels:
+        - "*"

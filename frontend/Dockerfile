@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # ---- Build stage: produce the production bundle ------------------------------
-FROM node:22-alpine AS builder
+FROM node:26-alpine AS builder
 
 # @playwright/test is a devDependency (needed because vite.config.ts imports the
 # Vitest browser provider), but the E2E browsers are never needed to build.

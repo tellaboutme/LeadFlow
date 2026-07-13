@@ -25,7 +25,7 @@ RUN npm run build
 
 # ---- Runtime stage: static files behind nginx --------------------------------
 # The unprivileged image runs as a non-root user and listens on 8080.
-FROM nginxinc/nginx-unprivileged:1.27-alpine AS runtime
+FROM nginxinc/nginx-unprivileged:1.31-alpine AS runtime
 
 # The base image ships Alpine packages with known fixable CVEs (zlib, nghttp2,
 # musl). Patch them at build time; this needs root, so drop back afterwards.

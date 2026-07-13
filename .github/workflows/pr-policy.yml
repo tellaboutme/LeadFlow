@@ -66,13 +66,18 @@ jobs:
 
           errors: list[str] = []
 
-          if not title_pattern.fullmatch(title):
+          bot_branch = branch.startswith("dependabot/") or branch.startswith("release/")
+
+          # Dependabot writes its own conventional-commit titles, and they run
+          # past the 72-character summary limit whenever the package name and
+          # both versions are long. Its titles are machine-generated and already
+          # consistent, so the style check applies to human PRs only.
+          if not bot_branch and not title_pattern.fullmatch(title):
               errors.append(
                   "PR title must match: type(scope): imperative summary "
                   "(supported types; 3-72 summary characters)."
               )
 
-          bot_branch = branch.startswith("dependabot/") or branch.startswith("release/")
           if not bot_branch and not branch_pattern.fullmatch(branch):
               errors.append(
                   "Branch must match: type/issue-number-kebab-summary "

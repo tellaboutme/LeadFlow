@@ -35,7 +35,6 @@ with seeded demo data — no external API calls, no API keys.
 - [Configuration](#configuration)
 - [Testing and quality](#testing-and-quality)
 - [Security](#security)
-- [Demo video](#demo-video)
 - [Project layout](#project-layout)
 - [License](#license)
 
@@ -208,12 +207,6 @@ that means:
   build; fixable ones do.
 
 Authentication and PostgreSQL are the planned next step.
-
----
-
-## Demo video
-
-_Placeholder — link to be added._
 
 ---
 

@@ -16,8 +16,7 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "e2e": "playwright test",
-    "e2e:report": "playwright show-report",
-    "lighthouse": "node scripts/lighthouse.mjs"
+    "e2e:report": "playwright show-report"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.9",
@@ -47,7 +46,6 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
-    "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.61.1",
     "@storybook/addon-a11y": "^10.5.0",
     "@storybook/addon-docs": "^10.5.0",

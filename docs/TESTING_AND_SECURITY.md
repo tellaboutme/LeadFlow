@@ -75,7 +75,6 @@ MVP has no authentication and must not be deployed publicly with real lead data.
 - Storybook component-state coverage.
 - MSW network mocks.
 - `@axe-core/playwright` accessibility tests.
-- Lighthouse CI performance/accessibility budgets.
 - OpenAPI generated-type drift check.
 - CodeQL.
 - Dependabot.
